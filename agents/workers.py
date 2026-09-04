@@ -4,8 +4,8 @@ Domain: Long-Horizon Agent Context & State Architecture
 Standard: Autonomous Agent State Machine & Token Economy RFC
 """
 import uuid
-from typing import Dict, Any, List, Optional
-from .models import SystemTaskPayload, AgentAlert, UrgencyLevel, SystemIntegrityStatus
+from typing import List
+from .models import SystemTaskPayload, AgentAlert, UrgencyLevel
 
 
 class InvariantQCWorker:

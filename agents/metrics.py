@@ -1,7 +1,6 @@
 """
 Prometheus Operational Metrics Exporter for dialogue-intent-stack-manager.
 """
-import time
 from typing import Dict, Any
 
 class SystemMetricsCollector:

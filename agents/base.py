@@ -8,6 +8,7 @@ import json
 import time
 import hmac
 import hashlib
+import secrets
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -34,11 +35,17 @@ class ResourceLimitExceededException(Exception):
 
 
 def assert_no_phi(text: str) -> None:
+    """Raise SecurityException if text contains detectable PHI/PII patterns."""
     if not text:
         return
+    text_str = str(text)
     for pattern in PHI_PATTERNS:
-        if pattern.search(str(text)):
-            raise SecurityException(f"PHI Outbound Guard Violation: Sensitive identifier detected with pattern {pattern.pattern}")
+        match = pattern.search(text_str)
+        if match:
+            raise SecurityException(
+                f"PHI Outbound Guard Violation: Sensitive identifier detected "
+                f"(pattern: {pattern.pattern[:40]}...)"
+            )
 
 
 class PHIGuard:
@@ -57,7 +64,21 @@ class PHIGuard:
 class AuditTrail:
     """Cryptographic Tamper-Evident HMAC-SHA256 Audit Trail."""
     def __init__(self, secret_key: Optional[str] = None):
-        self.secret_key = (secret_key or os.getenv("AUDIT_SECRET_KEY", "dialogue-intent-stack-manager-master-audit-key-2026")).encode("utf-8")
+        if secret_key:
+            self.secret_key = secret_key.encode("utf-8")
+        elif os.getenv("AUDIT_SECRET_KEY"):
+            self.secret_key = os.getenv("AUDIT_SECRET_KEY").encode("utf-8")
+        else:
+            # Generate a secure random key if none provided; warn about ephemeral key
+            self.secret_key = secrets.token_bytes(32)
+            import warnings
+            warnings.warn(
+                "AUDIT_SECRET_KEY not set; using an ephemeral random key. "
+                "Audit trail signatures will not persist across restarts. "
+                "Set the AUDIT_SECRET_KEY environment variable for persistence.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
         self.logs: List[Dict[str, Any]] = []
 
     def log(self, actor: str, actor_tier: str, event_type: str, details: Dict[str, Any]) -> Dict[str, Any]:
@@ -82,10 +103,21 @@ class AuditTrail:
         self.logs.append(entry)
         return entry
 
+    def _compute_signature(self, entry: Dict[str, Any]) -> str:
+        """Recompute the HMAC signature for a given entry to verify it."""
+        sign_string = f"{entry['audit_id']}|{entry['timestamp']}|{entry['actor']}|{entry['actor_tier']}|{entry['event_type']}|{entry['payload_hash']}|{entry['prev_hash']}"
+        return hmac.new(self.secret_key, sign_string.encode("utf-8"), hashlib.sha256).hexdigest()
+
     def verify_integrity(self) -> bool:
+        """Verify both chain linkage and HMAC signatures for all entries."""
         for i, entry in enumerate(self.logs):
+            # Verify chain linkage
             prev = self.logs[i-1]["current_hash"] if i > 0 else "GENESIS_BLOCK_0000000000000000"
             if entry["prev_hash"] != prev:
+                return False
+            # Verify HMAC signature
+            expected_sig = self._compute_signature(entry)
+            if not hmac.compare_digest(entry["current_hash"], expected_sig):
                 return False
         return True
 

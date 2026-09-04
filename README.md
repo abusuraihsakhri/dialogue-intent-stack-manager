@@ -67,11 +67,25 @@ python cli.py --task-id <value> --target <value> --primary <value> --secondary <
 
 ## 🛡️ Security & Enterprise Architecture
 
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
+* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, emails, and patient identifiers.
+* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs with full signature verification for every evaluation and state transition.
 * **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
 * **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
 * **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+
+### Security Configuration
+
+Set the `AUDIT_SECRET_KEY` environment variable to ensure audit trail signatures persist across restarts:
+
+```bash
+# Linux/macOS
+export AUDIT_SECRET_KEY="your-secure-random-key"
+
+# Windows
+set AUDIT_SECRET_KEY=your-secure-random-key
+```
+
+If not set, a secure random key is generated at startup (signatures will not persist across restarts).
 
 ---
 
@@ -86,8 +100,17 @@ pytest -v
 Execute high-throughput batch simulation benchmarks:
 
 ```bash
-python simulator.py --tasks 1000 --concurrency 8
+python simulator.py 1000
 ```
+
+### Test Coverage
+
+- **PHI Guard Enforcement:** Validates detection of SSNs, MRNs, phone numbers, emails, and patient identifiers
+- **Audit Trail Integrity:** Verifies HMAC-SHA256 signature verification and chain linkage
+- **Worker Agent Logic:** Tests threshold-based alert generation across all specialized workers
+- **Supervisor Consensus:** Validates multi-worker consensus and audit hash generation
+- **CLI Commands:** Tests audit, chat, batch, and verify-audit commands
+- **Error Handling:** Validates graceful handling of missing files and malformed input
 
 ---
 
@@ -95,5 +118,5 @@ python simulator.py --tasks 1000 --concurrency 8
 
 ```bash
 docker build -t dialogue-intent-stack-manager .
-docker run -p 8000:8000 dialogue-intent-stack-manager
+docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secure-key dialogue-intent-stack-manager
 ```

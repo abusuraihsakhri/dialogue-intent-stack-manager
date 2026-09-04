@@ -8,3 +8,8 @@ output.csv
 dist/
 build/
 *.egg-info/
+.venv/
+venv/
+.env
+*.db
+*.sqlite3

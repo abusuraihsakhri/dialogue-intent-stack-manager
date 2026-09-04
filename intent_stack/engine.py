@@ -3,9 +3,7 @@ Core Algorithmic Engine & Cryptographic / Biological Logic for IntentStack: Hier
 Domain: Autonomous Context Management & State Engines
 Standard: Pushdown Automata Dialogue Management
 """
-import math
-from typing import Dict, Any, List, Optional
-from .models import FrontierPayload, AgentTelemetryAlert, ExecutionStatus
+from typing import Dict, Any, Optional
 
 
 class FrontierDomainEngine:
