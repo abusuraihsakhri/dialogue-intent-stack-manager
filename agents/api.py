@@ -36,7 +36,6 @@ def health():
 
 @app.get("/metrics", response_class=PlainTextResponse)
 def metrics():
-    GLOBAL_METRICS.tasks_total = len(supervisor.dossier_registry)
     GLOBAL_METRICS.audit_blocks_total = len(AuditLogger.get_trail())
     return PlainTextResponse(
         GLOBAL_METRICS.export_prometheus_text(),
