@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Dialogue Intent Stack Manager API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
+    "description": "Illustrative threshold-audit API. The browser intent stack is an independent local-only component. Identifier screening is best effort.",
     "version": "3.0.0-ENTERPRISE",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
@@ -22,17 +22,24 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "Prometheus 0.0.4 text metrics",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "Prometheus text metrics",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/audit": {
       "post": {
-        "summary": "Dispatch task payload across specialized workers",
+        "summary": "Evaluate threshold rules and write an in-memory HMAC audit block",
         "requestBody": {
           "content": {
             "application/json": {
@@ -76,7 +83,7 @@
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Mock supervisory configuration response",
         "requestBody": {
           "content": {
             "application/json": {
@@ -107,6 +114,16 @@
         "responses": {
           "200": {
             "description": "Cryptographic audit trail"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Serve local-first browser application",
+        "responses": {
+          "200": {
+            "description": "HTML application"
           }
         }
       }
