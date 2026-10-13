@@ -32,7 +32,19 @@ jobs:
         python -m compileall -q agents intent_stack cli.py enrichment.py simulator.py
         python -m pip check
 
-    - name: Security SAST & Zero-PHI Audit
+    - name: Browser JavaScript syntax check
+      run: |
+        python - <<'PY'
+        import re
+        from pathlib import Path
+        page = Path("web/index.html").read_text(encoding="utf-8")
+        scripts = re.findall(r"<script>(.*?)</script>", page, re.S)
+        assert len(scripts) == 1, "Expected one inline browser script"
+        Path("/tmp/dialogue-intent-web.js").write_text(scripts[0], encoding="utf-8")
+        PY
+        node --check /tmp/dialogue-intent-web.js
+
+    - name: Audit integrity smoke check
       run: |
         python -c "
         from agents.base import PHIGuard, AuditLogger
