@@ -1,5 +1,7 @@
 # Dialogue Intent Stack Manager
 
+### [Open the Live Application →](https://abusuraihsakhri.github.io/dialogue-intent-stack-manager/)
+
 A small, local-first tool for tracking nested dialogue goals, suspending an earlier goal during an interruption, and resuming it afterward. The repository also retains its existing illustrative, threshold-based task-audit utilities.
 
 ## Features
@@ -14,9 +16,9 @@ The browser preview and server audit are distinct: **browser previews are unsign
 
 ## Use in a browser
 
-Open `web/index.html` directly for the fully local, dependency-free interface. Push intents and complete them to return to the previous goal. Export a snapshot as JSON for manual backup and import it later. Data remains in the current tab until exported; closing the page loses unsaved state.
+Open the live application above, or open `web/index.html` directly for the fully local, dependency-free interface. Push intents and complete them to return to the previous goal. Export a snapshot as JSON for manual backup and import it later. Data remains in the current tab until exported; closing the page loses unsaved state.
 
-GitHub Pages deployment is defined in `.github/workflows/pages.yml`. Publishing depends on Pages being enabled for this repository and on a successful deployment workflow.
+The live site is published from `web/` using `.github/workflows/pages.yml`.
 
 ## Run the Python service
 
