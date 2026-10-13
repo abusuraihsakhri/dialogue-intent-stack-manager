@@ -22,9 +22,19 @@ class SystemSupervisor:
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
         # Zero-PHI outbound validation
-        PHIGuard.assert_no_phi(payload.task_id)
-        PHIGuard.assert_no_phi(payload.target_identifier)
-        PHIGuard.assert_no_phi(payload.status_descriptor)
+        # Validate nested string attributes before recording a task.
+        def scan(value):
+            if isinstance(value, str):
+                PHIGuard.assert_no_phi(value)
+            elif isinstance(value, dict):
+                for key, item in value.items():
+                    scan(key)
+                    scan(item)
+            elif isinstance(value, (list, tuple)):
+                for item in value:
+                    scan(item)
+
+        scan(payload.model_dump())
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []
