@@ -1,122 +1,75 @@
 # Dialogue Intent Stack Manager
 
-> **Domain:** Autonomous Agent Systems & Context State Architecture  
-> **Reference Guidelines & Standards:** `Distributed Systems RFC & State Machine Verification`
+A small, local-first tool for tracking nested dialogue goals, suspending an earlier goal during an interruption, and resuming it afterward. The repository also retains its existing illustrative, threshold-based task-audit utilities.
 
-<div align="center">
+## Features
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+- **Browser intent stack:** push an intent, suspend the previous intent, complete the current task, and resume the suspended task.
+- **Snapshot exchange:** export or import versioned JSON snapshots. The browser validates snapshots before restoring them.
+- **Audit preview:** evaluate the existing threshold rules directly in JavaScript without a server. These values are illustrative and are **not clinical decision rules**.
+- **Python API:** FastAPI serves the same browser page, a server-side signed-audit endpoint, an audit trail endpoint, and Prometheus text metrics.
+- **Python stack library:** `intent_stack.stack.IntentStack` provides bounded push/pop, snapshots, and validated restoration.
 
-</div>
+The browser preview and server audit are distinct: **browser previews are unsigned**. The server's HMAC-SHA256 entries are stored only in memory and cannot attest to entries across restarts unless the application also persists the log externally (not implemented here).
 
----
+## Use in a browser
 
-## 📖 What It Does
+Open `web/index.html` directly for the fully local, dependency-free interface. Push intents and complete them to return to the previous goal. Export a snapshot as JSON for manual backup and import it later. Data remains in the current tab until exported; closing the page loses unsaved state.
 
-**Dialogue Intent Stack Manager** is an advanced analytical and computational platform implementing Pushdown automata intent stack for clean multi-turn interruption and resumption.
+GitHub Pages deployment is defined in `.github/workflows/pages.yml`. Publishing depends on Pages being enabled for this repository and on a successful deployment workflow.
 
----
+## Run the Python service
 
-## ⚙️ Key Capabilities & Algorithmic Modules
-
-- **Deterministic Calculation Engine**: Strict compliance with standard reference formulations and thresholds.
-- **Risk & Urgency Classification**: Multi-tier categorization with automated clinical/operational action recommendations.
-- **Validation & Guardrails**: Rigorous input bounds checking and anomaly detection.
-
----
-
-## 💻 CLI Quickstart & Usage
-
-### 1. Guided Interactive Mode
-```bash
-python cli.py
-```
-
-### 2. Direct Parameterized Evaluation
-```bash
-python cli.py --task-id <value> --target <value> --primary <value> --secondary <value>
-```
-
-### Parameter Reference
-- `--task-id`: Specifies input measurement or parameter value.
-- `--target`: Specifies input measurement or parameter value.
-- `--primary`: Specifies input measurement or parameter value.
-- `--secondary`: Specifies input measurement or parameter value.
-- `--critical`: Specifies input measurement or parameter value.
-- `--status`: Specifies input measurement or parameter value.
-- `--input`: Specifies input measurement or parameter value.
-- `--output`: Specifies input measurement or parameter value.
-
-### Input Data Schema
-
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `task_id` | Parameter / observation metric | Required |
-| `target_identifier` | Parameter / observation metric | Required |
-| `primary_metric` | Parameter / observation metric | Required |
-| `secondary_metric` | Parameter / observation metric | Required |
-| `is_critical_flag` | Parameter / observation metric | Required |
-| `status_descriptor` | Parameter / observation metric | Required |
-
----
-
-## 🛡️ Security & Enterprise Architecture
-
-* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, emails, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs with full signature verification for every evaluation and state transition.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
-
-### Security Configuration
-
-Set the `AUDIT_SECRET_KEY` environment variable to ensure audit trail signatures persist across restarts:
+Requires Python 3.10+ (package metadata currently permits Python 3.9+) and pip:
 
 ```bash
-# Linux/macOS
-export AUDIT_SECRET_KEY="your-secure-random-key"
-
-# Windows
-set AUDIT_SECRET_KEY=your-secure-random-key
+python -m pip install -e '.[dev]'
+python cli.py serve --host 127.0.0.1 --port 8000
 ```
 
-If not set, a secure random key is generated at startup (signatures will not persist across restarts).
+Open `http://127.0.0.1:8000/` for the interface. Choose **Local FastAPI server** in the audit form to send evaluations to `POST /api/audit`. Interactive API documentation is at `/docs`.
 
----
-
-## 🧪 Testing & Verification
-
-Run the automated test suite:
+The original command-line tools are retained:
 
 ```bash
-pytest -v
+python cli.py audit --task-id TASK-01 --target KEY-01 --primary 20 --secondary 5
+python cli.py batch --input sample.csv --output results.csv
+python cli.py verify-audit
+python -m intent_stack.cli audit --task-id TASK-01
 ```
 
-Execute high-throughput batch simulation benchmarks:
+The `intent_stack` legacy CLI and the `agents` API implement different historical thresholds. Do not assume the two produce identical audit classifications. The browser preview follows the `agents` API rules (primary above 25; secondary above 12; and status keywords).
+
+### Python intent stack
+
+```python
+from intent_stack.stack import IntentStack
+
+stack = IntentStack()
+stack.push("Write manuscript", {"section": "Introduction"})
+stack.push("Check citation")
+stack.pop()  # Resumes "Write manuscript"
+snapshot = stack.snapshot()
+```
+
+The stack is local to its Python instance. It is not a persistent multi-user conversation service.
+
+## Security and privacy
+
+The browser interface makes no requests while using its local stack and audit-preview mode. Server audit mode sends the supplied form values to the selected same-origin FastAPI server. Avoid entering real patient data, secrets, or other sensitive identifiers.
+
+The Python service uses regular-expression screening for some identifier patterns, but it does **not** provide comprehensive PHI detection or HIPAA compliance. The audit trail is tamper-evident only for the current in-memory process and secret key. Configure a strong, private `AUDIT_SECRET_KEY` for reproducible verification within the service; never commit it. The Compose file requires this environment variable.
+
+## Testing
 
 ```bash
-python simulator.py 1000
+python -m pip install -e '.[dev]'
+pytest -q
+python -m compileall -q agents intent_stack cli.py enrichment.py simulator.py
 ```
 
-### Test Coverage
+GitHub Actions tests Python 3.10, 3.11, and 3.12. The browser requires a current JavaScript-capable desktop or mobile browser; no Python runtime or Pyodide download is needed.
 
-- **PHI Guard Enforcement:** Validates detection of SSNs, MRNs, phone numbers, emails, and patient identifiers
-- **Audit Trail Integrity:** Verifies HMAC-SHA256 signature verification and chain linkage
-- **Worker Agent Logic:** Tests threshold-based alert generation across all specialized workers
-- **Supervisor Consensus:** Validates multi-worker consensus and audit hash generation
-- **CLI Commands:** Tests audit, chat, batch, and verify-audit commands
-- **Error Handling:** Validates graceful handling of missing files and malformed input
+## Technology and license
 
----
-
-## 🐳 Container Deployment
-
-```bash
-docker build -t dialogue-intent-stack-manager .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secure-key dialogue-intent-stack-manager
-```
+Python, FastAPI, Pydantic, standard-library HMAC/SHA-256 and vanilla HTML/CSS/JavaScript. [MIT License](LICENSE).

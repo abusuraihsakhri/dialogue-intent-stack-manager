@@ -9,8 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml .
-RUN pip install --no-cache-dir fastapi uvicorn pydantic pytest
+COPY pyproject.toml README.md ./
+COPY agents ./agents
+COPY intent_stack ./intent_stack
+RUN pip install --no-cache-dir .
 
 COPY . .
 

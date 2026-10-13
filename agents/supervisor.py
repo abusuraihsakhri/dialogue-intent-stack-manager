@@ -3,11 +3,13 @@ Supervisor Orchestrator & Operations Intelligence for Dialogue Intent Stack Mana
 Domain: Long-Horizon Agent Context & State Architecture
 """
 import uuid
+import time
 from typing import Dict, Any, List
 from .base import AuditLogger, ActionExecutor, PHIGuard
 from .models import SystemTaskPayload, AgentAlert, ConsensusDossier, UrgencyLevel, SystemIntegrityStatus
 from .workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from .llm_factory import LLMFactory
+from .metrics import GLOBAL_METRICS
 
 
 class SystemSupervisor:
@@ -21,10 +23,21 @@ class SystemSupervisor:
         self.dossier_registry: Dict[str, ConsensusDossier] = {}
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
+        start = time.perf_counter()
         # Zero-PHI outbound validation
-        PHIGuard.assert_no_phi(payload.task_id)
-        PHIGuard.assert_no_phi(payload.target_identifier)
-        PHIGuard.assert_no_phi(payload.status_descriptor)
+        # Validate nested string attributes before recording a task.
+        def scan(value):
+            if isinstance(value, str):
+                PHIGuard.assert_no_phi(value)
+            elif isinstance(value, dict):
+                for key, item in value.items():
+                    scan(key)
+                    scan(item)
+            elif isinstance(value, (list, tuple)):
+                for item in value:
+                    scan(item)
+
+        scan(payload.model_dump())
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []
@@ -71,6 +84,7 @@ class SystemSupervisor:
         )
 
         self.dossier_registry[dossier.dossier_id] = dossier
+        GLOBAL_METRICS.record_task(overall_urgency.value, time.perf_counter() - start)
         return dossier
 
     def query_supervisory_chat(self, query: str) -> str:

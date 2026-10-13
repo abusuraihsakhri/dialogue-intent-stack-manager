@@ -11,6 +11,20 @@ from .agents import IntentStackCoordinator
 coordinator = IntentStackCoordinator()
 
 
+def parse_csv_bool(value):
+    """Parse common CSV boolean spellings without treating 'False' as true."""
+    if isinstance(value, bool):
+        return value
+    if value is None or str(value).strip() == "":
+        return False
+    normalized = str(value).strip().lower()
+    if normalized in {"true", "1", "yes", "y", "on"}:
+        return True
+    if normalized in {"false", "0", "no", "n", "off"}:
+        return False
+    raise ValueError(f"Invalid boolean value: {value!r}")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="dialogue-intent-stack-manager", description="IntentStack: Hierarchical Sub-Dialog & Multi-Turn Interruption Resumer Agent")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -84,7 +98,7 @@ def main(argv=None):
             print(f"Error: Failed to parse CSV '{args.input}': {e}", file=sys.stderr)
             return 1
 
-        out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]))
         out_rows = []
         for r in rows:
             try:
@@ -94,7 +108,7 @@ def main(argv=None):
                     primary_metric=float(r.get("primary_metric", 15.0)),
                     secondary_metric=float(r.get("secondary_metric", 5.0)),
                     status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                    is_critical_flag=bool(r.get("is_critical_flag", False)),
+                    is_critical_flag=parse_csv_bool(r.get("is_critical_flag", False)),
                 )
             except (ValueError, TypeError) as e:
                 print(f"Warning: Skipping malformed row {r}: {e}", file=sys.stderr)

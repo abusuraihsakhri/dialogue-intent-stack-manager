@@ -1,236 +1,254 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dialogue Intent Stack Manager — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dialogue Intent Stack Manager</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1120;--panel:#151f30;--border:#34445a;--text:#f4f6fb;--muted:#b9c7d9;--accent:#76b7ff;--good:#65d6ac;--danger:#ff9b9b}
+*{box-sizing:border-box}
+body{font:15px/1.5 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);margin:0}
+main{max-width:1120px;margin:auto;padding:28px 20px 50px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center;margin-bottom:22px}
+h1{font-size:clamp(1.45rem,3vw,2.1rem);margin:0}
+h2{font-size:1.13rem;margin:0 0 13px}
+p{color:var(--muted);margin:5px 0 12px}
+small,.hint{color:var(--muted);font-size:.86rem}
+.tag{border:1px solid var(--border);border-radius:99px;padding:6px 12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;min-width:0}
+section.wide{grid-column:1/-1}
+label{display:block;margin:12px 0 5px;color:var(--muted);font-weight:600}
+input,select,textarea,button{font:inherit}
+input:not([type=checkbox]),select,textarea{width:100%;border:1px solid #62728b;background:#0a1423;color:var(--text);border-radius:7px;padding:9px 11px}
+textarea{min-height:76px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button{border:1px solid #6886ab;color:white;border-radius:7px;background:#263a55;padding:9px 14px;cursor:pointer}
+button.primary{background:#1963b0;border-color:#6ba8ed}
+button:hover{filter:brightness(1.16)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.stack{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.stack li{border-left:3px solid #697d94;background:#0d1829;padding:12px;border-radius:5px;overflow-wrap:anywhere}
+.stack li:last-child{border-color:var(--good)}
+.stack .state{float:right;font-size:.75rem;color:var(--muted);margin-left:10px}
+.stack .notes{display:block;color:var(--muted);white-space:pre-wrap;margin-top:4px}
+.stats{display:flex;gap:13px;flex-wrap:wrap;color:var(--muted);font-size:.88rem;margin-bottom:14px}
+.stats strong{color:var(--text)}
+.result{padding:13px;border:1px solid var(--border);background:#0a1423;border-radius:8px;min-height:115px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,Consolas,monospace}
+.notice{margin-top:14px;color:var(--muted);font-size:.86rem}
+.error{color:var(--danger)}
+.success{color:var(--good)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;gap:8px;align-items:center}
+.check input{width:auto}
+footer{margin-top:20px;color:var(--muted);font-size:.85rem}
+@media(max-width:720px){.grid{grid-template-columns:1fr}section.wide{grid-column:auto}.pair{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Dialogue Intent Stack Manager</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Dialogue Intent Stack Manager Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "dialogue-intent-stack-manager",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
+<main>
+<header><div><h1>Dialogue Intent Stack Manager</h1><p>Track nested user goals, interruptions and resumption.</p></div><span class="tag">Local-first · no account required</span></header>
+<div class="grid">
+<section>
+<h2>Add an intent</h2>
+<form id="intent-form">
+<label for="intent-name">Intent / task</label>
+<input id="intent-name" maxlength="250" required placeholder="e.g., Draft a manuscript">
+<label for="intent-notes">Context to retain on interruption (optional)</label>
+<textarea id="intent-notes" maxlength="1000" placeholder="e.g., Continue from methods section"></textarea>
+<div class="actions"><button class="primary" type="submit">Push intent / interrupt</button><button id="resume" type="button">Complete &amp; resume</button><button id="clear" type="button">Clear stack</button></div>
+</form>
+<p class="notice">The newest intent is active. Prior intents are suspended until the current one completes.</p>
+</section>
+<section>
+<h2>Execution stack</h2>
+<div class="stats"><span>Depth: <strong id="depth">0</strong></span><span>Active: <strong id="active">None</strong></span></div>
+<ol id="stack-list" class="stack" aria-live="polite"></ol>
+<p id="empty" class="hint">No intents yet. Push an intent to begin.</p>
+<div class="actions"><button id="export" type="button">Export snapshot</button><button id="import-trigger" type="button">Import snapshot</button><input id="import-file" type="file" accept=".json,application/json" hidden aria-label="Import snapshot JSON"></div>
+<p id="stack-message" role="status" aria-live="polite" class="hint"></p>
+</section>
+<section class="wide">
+<h2>Threshold-audit utility</h2>
+<p>Preserved from the original repository. This evaluator is separate from the interruption stack; its thresholds are illustrative and not clinical rules.</p>
+<form id="audit-form">
+<div class="pair">
+<div><label for="task_id">Task ID</label><input id="task_id" value="TASK-001" maxlength="120" required></div>
+<div><label for="target_identifier">Target identifier</label><input id="target_identifier" value="TARGET-001" maxlength="120" required></div>
+<div><label for="primary_metric">Primary metric (threshold &gt;25)</label><input id="primary_metric" type="number" step="any" value="29.4" required></div>
+<div><label for="secondary_metric">Secondary metric (threshold &gt;12)</label><input id="secondary_metric" type="number" step="any" value="14.8" required></div>
+<div><label for="status_descriptor">Status descriptor</label><input id="status_descriptor" value="DISCORDANT_ANOMALY" maxlength="120"></div>
+<div><label for="audit-mode">Execution mode</label><select id="audit-mode"><option value="browser">In-browser preview (unsigned)</option><option value="server">Local FastAPI server (signed audit)</option></select></div>
+</div>
+<label class="check" for="is_critical"><input id="is_critical" type="checkbox"> Critical escalation flag</label>
+<div class="actions"><button type="submit" class="primary" id="audit-submit">Evaluate</button></div>
+</form>
+<p id="audit-message" class="hint" role="status" aria-live="polite"></p>
+<div id="audit-output" class="result" role="region" aria-label="Audit outcome">No evaluation performed.</div>
+<p class="notice">Browser mode runs locally without network requests and does not issue cryptographic audit signatures. Server mode requires running the included FastAPI application at the same origin. Do not enter real patient information; regular-expression filters cannot guarantee de-identification.</p>
+</section>
+</div>
+<footer>Data is held in the current browser tab only unless you explicitly export a JSON snapshot. No external libraries, fonts or analytics are loaded.</footer>
+</main>
+<script>
+"use strict";
+(function () {
+  const $ = id => document.getElementById(id);
+  let frames = [];
+  const maxDepth = 64;
+  function message(text, error) {
+    $("stack-message").textContent = text;
+    $("stack-message").className = error ? "error" : "success";
+  }
+  function render() {
+    const list = $("stack-list");
+    list.replaceChildren();
+    frames.forEach(frame => {
+      const item = document.createElement("li");
+      const label = document.createElement("strong");
+      label.textContent = frame.intent;
+      const state = document.createElement("span");
+      state.className = "state";
+      state.textContent = frame.state;
+      const notes = document.createElement("span");
+      notes.className = "notes";
+      notes.textContent = frame.context.notes || "";
+      item.append(state, label, notes);
+      list.append(item);
+    });
+    $("empty").hidden = frames.length !== 0;
+    $("depth").textContent = String(frames.length);
+    $("active").textContent = frames.length ? frames[frames.length - 1].intent : "None";
+    $("resume").disabled = $("clear").disabled = $("export").disabled = !frames.length;
+  }
+  $("intent-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const intent = $("intent-name").value.trim();
+    if (!intent || intent.length > 250 || frames.length >= maxDepth) {
+      message("Provide a task name; maximum stack depth is 64.", true);
+      return;
+    }
+    if (frames.length) frames[frames.length - 1].state = "suspended";
+    const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID() : String(Date.now()) + "-" + String(Math.random());
+    frames.push({id, intent, context:{notes:$("intent-notes").value}, state:"active"});
+    $("intent-name").value = "";
+    $("intent-notes").value = "";
+    message("Intent pushed; prior goal retained.", false);
+    render();
+    $("intent-name").focus();
+  });
+  $("resume").addEventListener("click", () => {
+    if (!frames.length) return;
+    const finished = frames.pop();
+    if (frames.length) frames[frames.length - 1].state = "active";
+    message('Completed "' + finished.intent + '". ' + (frames.length ? 'Resumed prior intent.' : 'Stack empty.'), false);
+    render();
+  });
+  $("clear").addEventListener("click", () => {
+    if (!frames.length || !confirm("Clear all intents from this tab?")) return;
+    frames = [];
+    message("Stack cleared.", false);
+    render();
+  });
+  $("export").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({version:1,frames},null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "intent-stack-snapshot.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    message("Snapshot exported to a local JSON file.", false);
+  });
+  $("import-trigger").addEventListener("click", () => $("import-file").click());
+  $("import-file").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      if (file.size > 128 * 1024) throw Error("File exceeds 128 KiB.");
+      const data = JSON.parse(await file.text());
+      if (data.version !== 1 || !Array.isArray(data.frames) || data.frames.length > maxDepth) throw Error("Unsupported snapshot.");
+      const ids = new Set();
+      data.frames.forEach((frame, i) => {
+        if (!frame || typeof frame !== "object" ||
+            typeof frame.id !== "string" || !frame.id || ids.has(frame.id) ||
+            typeof frame.intent !== "string" || !frame.intent.trim() || frame.intent.length > 250 ||
+            !frame.context || typeof frame.context !== "object" || Array.isArray(frame.context) ||
+            (frame.context.notes != null && (typeof frame.context.notes !== "string" || frame.context.notes.length > 1000)) ||
+            frame.state !== (i === data.frames.length - 1 ? "active" : "suspended")) {
+          throw Error("Invalid frame at position " + (i + 1));
         }
-    </script>
+        ids.add(frame.id);
+      });
+      frames = data.frames.map(f => ({id:f.id,intent:f.intent,context:{notes:f.context.notes || ""},state:f.state}));
+      render();
+      message("Snapshot imported (" + frames.length + " intents).", false);
+    } catch (err) {
+      message("Import failed: " + err.message, true);
+    } finally {
+      e.target.value = "";
+    }
+  });
+  function browserAudit(p) {
+    const alerts = [];
+    function alert(worker, urgency, summary) {
+      alerts.push({origin_worker:worker, urgency, summary});
+    }
+    if (p.primary_metric > 25) alert("InvariantQCWorker","ELEVATED_RISK","Primary Metric Threshold Exceeded");
+    if (p.is_critical_flag || p.secondary_metric > 12)
+      alert("SafetyEscalationWorker",p.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK","Critical Safety Interlock Triggered");
+    if (/(DISCORDANT|ANOMALY|MUTANT|VIOLATION|FAIL|REJECT)/i.test(p.status_descriptor))
+      alert("ProtocolConformanceWorker","ELEVATED_RISK","Protocol Conformance Discordance Detected");
+    const critical = alerts.filter(a => a.urgency === "CRITICAL_STAT_PANIC").length;
+    const urgency = critical ? "CRITICAL_STAT_PANIC" : alerts.length ? "ELEVATED_RISK" : "ROUTINE";
+    return {mode:"LOCAL_UNSIGNED_PREVIEW",task_id:p.task_id,target_identifier:p.target_identifier,
+      overall_urgency:urgency, integrity_status:critical ? "RECALIBRATION_REQUIRED" : alerts.length ? "DISCORDANT_ANOMALY" : "VALIDATED_OPTIMAL",
+      total_alerts:alerts.length,critical_alerts_count:critical,alerts};
+  }
+  $("audit-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const p = {
+      task_id:$("task_id").value.trim(),
+      target_identifier:$("target_identifier").value.trim(),
+      primary_metric:Number($("primary_metric").value),
+      secondary_metric:Number($("secondary_metric").value),
+      status_descriptor:$("status_descriptor").value.trim(),
+      is_critical_flag:$("is_critical").checked
+    };
+    const mode = $("audit-mode").value;
+    if (!p.task_id || !p.target_identifier || !$("primary_metric").value || !$("secondary_metric").value ||
+        !Number.isFinite(p.primary_metric) || !Number.isFinite(p.secondary_metric)) {
+      $("audit-message").textContent = "Provide valid finite numeric metrics and nonempty identifiers.";
+      $("audit-message").className = "error";
+      return;
+    }
+    $("audit-submit").disabled = true;
+    $("audit-message").textContent = "Evaluating…";
+    try {
+      let result;
+      if (mode === "browser") {
+        result = browserAudit(p);
+      } else {
+        const response = await fetch("./api/audit", {
+          method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)
+        });
+        if (!response.ok) throw Error("Server returned HTTP " + response.status);
+        result = await response.json();
+      }
+      $("audit-output").textContent = JSON.stringify(result,null,2);
+      $("audit-message").textContent = mode === "browser" ? "Local preview complete (not HMAC-signed)." : "Backend evaluation complete.";
+      $("audit-message").className = "success";
+    } catch (err) {
+      $("audit-message").textContent = "Evaluation failed: " + err.message + ". No simulated result was substituted.";
+      $("audit-message").className = "error";
+    } finally {
+      $("audit-submit").disabled = false;
+    }
+  });
+  render();
+})();
+</script>
 </body>
 </html>
