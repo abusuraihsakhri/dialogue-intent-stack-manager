@@ -3,11 +3,13 @@ Supervisor Orchestrator & Operations Intelligence for Dialogue Intent Stack Mana
 Domain: Long-Horizon Agent Context & State Architecture
 """
 import uuid
+import time
 from typing import Dict, Any, List
 from .base import AuditLogger, ActionExecutor, PHIGuard
 from .models import SystemTaskPayload, AgentAlert, ConsensusDossier, UrgencyLevel, SystemIntegrityStatus
 from .workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from .llm_factory import LLMFactory
+from .metrics import GLOBAL_METRICS
 
 
 class SystemSupervisor:
@@ -21,6 +23,7 @@ class SystemSupervisor:
         self.dossier_registry: Dict[str, ConsensusDossier] = {}
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
+        start = time.perf_counter()
         # Zero-PHI outbound validation
         # Validate nested string attributes before recording a task.
         def scan(value):
@@ -81,6 +84,7 @@ class SystemSupervisor:
         )
 
         self.dossier_registry[dossier.dossier_id] = dossier
+        GLOBAL_METRICS.record_task(overall_urgency.value, time.perf_counter() - start)
         return dossier
 
     def query_supervisory_chat(self, query: str) -> str:
