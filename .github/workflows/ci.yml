@@ -1,4 +1,4 @@
-name: Dialogue Intent Stack Manager CI/CD & Security Verification
+name: Python and browser validation
 
 on:
   push:
@@ -46,8 +46,11 @@ jobs:
 
     - name: Audit integrity smoke check
       run: |
-        python -c "
-        from agents.base import PHIGuard, AuditLogger
-        assert AuditLogger.verify_integrity() is True
-        print('Security & Zero-PHI Audit Passed!')
-        "
+        python - <<'PY'
+        from agents.base import AuditTrail
+        trail = AuditTrail(secret_key="ci-test-only-key")
+        trail.log("ci", "test", "SMOKE", {"status": "PASS"})
+        assert trail.verify_integrity()
+        trail.logs[0]["payload_hash"] = "altered"
+        assert not trail.verify_integrity()
+        PY
