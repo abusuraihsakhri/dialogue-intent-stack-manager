@@ -31,3 +31,17 @@ jobs:
           path: web
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify live HTML from Pages
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --location "$SITE_URL" --output /tmp/dialogue-pages.html; then
+              break
+            fi
+            sleep 10
+          done
+          test -s /tmp/dialogue-pages.html
+          grep -Fq 'id="intent-form"' /tmp/dialogue-pages.html
+          grep -Fq 'id="audit-form"' /tmp/dialogue-pages.html
+          grep -Fq 'Dialogue Intent Stack Manager' /tmp/dialogue-pages.html
