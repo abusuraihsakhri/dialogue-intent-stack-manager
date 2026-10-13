@@ -43,6 +43,7 @@ jobs:
         Path("/tmp/dialogue-intent-web.js").write_text(scripts[0], encoding="utf-8")
         PY
         node --check /tmp/dialogue-intent-web.js
+        node tests/browser-smoke.js
 
     - name: Audit integrity smoke check
       run: |
